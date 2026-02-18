@@ -31,3 +31,4 @@ C:\Users\WINDOWS\Documents\Modulos\Modulos\Modulos.API\Modulos.Client\obj\Debug\
 C:\Users\WINDOWS\Documents\Modulos\Modulos\Modulos.API\Modulos.Client\obj\Debug\net8.0\Modulos.Client.pdb
 C:\Users\WINDOWS\Documents\Modulos\Modulos\Modulos.API\Modulos.Client\obj\Debug\net8.0\Modulos.Client.genruntimeconfig.cache
 C:\Users\WINDOWS\Documents\Modulos\Modulos\Modulos.API\Modulos.Client\obj\Debug\net8.0\ref\Modulos.Client.dll
+C:\Users\WINDOWS\Documents\Modulos\Modulos\Modulos.API\Modulos.Client\obj\Debug\net8.0\Modulos.Client.sourcelink.json
