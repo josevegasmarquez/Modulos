@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Modulos.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+66672626d14a5ce358d80ba03d1a342a922c02c5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b1f41220c1ab57d7f12c97e16b65fa61c530b7da")]
 [assembly: System.Reflection.AssemblyProductAttribute("Modulos.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Modulos.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
