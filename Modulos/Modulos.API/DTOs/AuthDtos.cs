@@ -1,24 +1,27 @@
-﻿using Modulos.API.Models;
+using Modulos.API.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace Modulos.API.DTOs
 {
     public class RegisterRequest
     {
-        [Required,StringLength(50)]
+        [Required, StringLength(50)]
         public string Nombres { get; set; } = string.Empty;
-        [Required,StringLength(50)]
+        [Required, StringLength(50)]
         public string Apellidos { get; set; } = string.Empty;
-        [Required,EmailAddress]
+        [Required, StringLength(8)]
+        public string DNI { get; set; } = string.Empty;
+        [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
-        [Required,MinLength(6)]
+        [Required, MinLength(6)]
         public string Password { get; set; } = string.Empty;
-        [Required,DataType(DataType.Date)]
+        [Required, DataType(DataType.Date)]
         public DateTime FechaNacimiento { get; set; }
         [Required]
         public TipoGenero Genero { get; set; }
         public string? Direccion { get; set; }
         public string? PhoneNumber { get; set; }
+        public string? Role { get; set; }
     }
     public class LoginRequest
     {
@@ -39,14 +42,17 @@ namespace Modulos.API.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
-        public string FullName { get; set; } = string.Empty;
+        public string DNI { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string Genero { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public DateTime RegistrationDate { get; set; }
+        public bool MustChangePassword { get; set; }
+        public List<string> Roles { get; set; } = new();
     }
     public class UpdateProfileRequest
     {
@@ -60,5 +66,15 @@ namespace Modulos.API.DTOs
         public TipoGenero Genero { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
+    }
+
+    public class ChangePasswordRequest
+    {
+        [Required]
+        public string CurrentPassword { get; set; } = string.Empty;
+        [Required, MinLength(6)]
+        public string NewPassword { get; set; } = string.Empty;
+        [Required, Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

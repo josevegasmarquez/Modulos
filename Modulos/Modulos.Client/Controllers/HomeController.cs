@@ -15,6 +15,10 @@ namespace Modulos.Client.Controllers
 
         public IActionResult Index()
         {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return RedirectToAction("Login", "Account");
+            }
             return View();
         }
 

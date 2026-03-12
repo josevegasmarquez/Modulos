@@ -1,0 +1,77 @@
+@model Modulos.Client.Controllers.UserDto
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card overflow-hidden animate-fade-in border-0">
+                <div class="bg-primary p-4 p-md-5 text-white position-relative">
+                    <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3 me-4 shadow-sm">
+                            <i class="bi bi-person-fill fs-1"></i>
+                        </div>
+                        <div>
+                            <h2 class="fw-bold mb-1">@Model.FullName</h2>
+                            <span class="badge rounded-pill bg-white text-primary px-3 py-2 shadow-sm">
+                                <i class="bi bi-shield-check me-1"></i> @string.Join(", ", Model.Roles)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                        <i class="bi bi-person-badge" style="font-size: 8rem;"></i>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 border bg-light bg-opacity-50">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Información Personal</label>
+                                <div class="mb-3">
+                                    <div class="small text-muted">DNI</div>
+                                    <div class="fw-semibold">@Model.DNI</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="small text-muted">Fecha de Nacimiento</div>
+                                    <div class="fw-semibold">@Model.DateOfBirth.ToString("dd MMMM, yyyy")</div>
+                                </div>
+                                <div class="mb-0">
+                                    <div class="small text-muted">Género</div>
+                                    <div class="fw-semibold">@Model.Genero</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 border bg-light bg-opacity-50 h-100">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Contacto y Ubicación</label>
+                                <div class="mb-3">
+                                    <div class="small text-muted">Correo Electrónico</div>
+                                    <div class="fw-semibold">@Model.Email</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="small text-muted">Teléfono</div>
+                                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.PhoneNumber) ? Model.PhoneNumber : "No registrado")</div>
+                                </div>
+                                <div class="mb-0">
+                                    <div class="small text-muted">Dirección</div>
+                                    <div class="fw-semibold text-truncate">@(!string.IsNullOrEmpty(Model.Address) ? Model.Address : "No registrada")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-top p-4 d-flex justify-content-between align-items-center">
+                    <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary px-4 rounded-pill">
+                        <i class="bi bi-house me-2"></i>Inicio
+                    </a>
+                    <a asp-action="EditProfile" class="btn btn-primary-modern btn-modern px-5 py-2 shadow-sm rounded-pill border-0">
+                        <i class="bi bi-pencil-square me-2"></i>Editar Datos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
