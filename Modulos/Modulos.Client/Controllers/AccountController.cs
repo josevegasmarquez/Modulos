@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations; // Added for DataAnnotations
 
 namespace Modulos.Client.Controllers
@@ -31,7 +32,7 @@ namespace Modulos.Client.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
-                if (result != null && result.Success)
+                if (result?.User != null && result.Success)
                 {
                     await SignInUser(result, rememberMe);
 
@@ -204,6 +205,65 @@ namespace Modulos.Client.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> Users()
+        {
+            var client = _httpClientFactory.CreateClient("ModulosAPI");
+            var token = HttpContext.Session.GetString("JWTToken");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("Auth/users");
+            if (response.IsSuccessStatusCode)
+            {
+                var users = await response.Content.ReadFromJsonAsync<List<UserDto>>();
+                return View(users);
+            }
+
+            return View(new List<UserDto>());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> UserProfile(string id)
+        {
+            var client = _httpClientFactory.CreateClient("ModulosAPI");
+            var token = HttpContext.Session.GetString("JWTToken");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync($"Auth/user/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var user = await response.Content.ReadFromJsonAsync<UserDto>();
+                ViewBag.IsAdminViewingOther = true;
+                return View("Profile", user);
+            }
+
+            return RedirectToAction("Users");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> ResetPassword(string id)
+        {
+            var client = _httpClientFactory.CreateClient("ModulosAPI");
+            var token = HttpContext.Session.GetString("JWTToken");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PostAsync($"Auth/reset-password/{id}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                TempData["SuccessMessage"] = result?.Message;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Error al reiniciar la contraseña.";
+            }
+
+            return RedirectToAction("Users");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
@@ -216,20 +276,23 @@ namespace Modulos.Client.Controllers
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, auth.User.FullName),
-                new Claim(ClaimTypes.Email, auth.User.Email),
-                new Claim(ClaimTypes.NameIdentifier, auth.User.Id),
-                new Claim("JWTToken", auth.Token)
+                new Claim(ClaimTypes.Name, auth.User?.FullName ?? "Unknown"),
+                new Claim(ClaimTypes.Email, auth.User?.Email ?? string.Empty),
+                new Claim(ClaimTypes.NameIdentifier, auth.User?.Id ?? string.Empty),
+                new Claim("JWTToken", auth.Token ?? string.Empty)
             };
 
-            foreach (var role in auth.User.Roles)
+            if (auth.User?.Roles != null)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                foreach (var role in auth.User.Roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
             }
 
             // Store some data in session for easy access
-            HttpContext.Session.SetString("JWTToken", auth.Token);
-            HttpContext.Session.SetString("UserData", JsonSerializer.Serialize(auth.User));
+            if (auth.Token != null) HttpContext.Session.SetString("JWTToken", auth.Token);
+            if (auth.User != null) HttpContext.Session.SetString("UserData", JsonSerializer.Serialize(auth.User));
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties

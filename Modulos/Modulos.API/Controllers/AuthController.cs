@@ -129,6 +129,56 @@ namespace Modulos.API.Controllers
             return Ok(new AuthResponse { Success = true, User = await MapToDto(user) });
         }
 
+        [Authorize(Policy = "RequireAdmin")]
+        [HttpGet("users")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+        {
+            var users = _userManager.Users.ToList();
+            var userDtos = new List<UserDto>();
+            foreach (var user in users)
+            {
+                userDtos.Add(await MapToDto(user));
+            }
+            return Ok(userDtos);
+        }
+
+        [Authorize(Policy = "RequireAdmin")]
+        [HttpGet("user/{id}")]
+        public async Task<ActionResult<UserDto>> GetUserById(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+            return Ok(await MapToDto(user));
+        }
+
+        [Authorize(Policy = "RequireAdmin")]
+        [HttpPost("reset-password/{id}")]
+        public async Task<ActionResult<AuthResponse>> ResetPassword(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound(new AuthResponse { Success = false, Message = "User not found" });
+
+            // Password format: N (first name uppercase) a (first surname lowercase) 2026 (current year) @ -> Na2026@
+            string firstNameInitial = !string.IsNullOrEmpty(user.Nombres) ? user.Nombres[0].ToString().ToUpper() : "U";
+            string lastNameInitial = !string.IsNullOrEmpty(user.Apellidos) ? user.Apellidos[0].ToString().ToLower() : "s";
+            string year = DateTime.Now.Year.ToString();
+            string tempPassword = $"{firstNameInitial}{lastNameInitial}{year}@";
+
+            // Remove existing password and set temporary one
+            await _userManager.RemovePasswordAsync(user);
+            var result = await _userManager.AddPasswordAsync(user, tempPassword);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(new AuthResponse { Success = false, Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+            }
+
+            user.MustChangePassword = true;
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new AuthResponse { Success = true, Message = $"Contraseña reiniciada a: {tempPassword}" });
+        }
+
         private async Task<UserDto> MapToDto(ApplicationUser user)
         {
             var roles = await _userManager.GetRolesAsync(user);

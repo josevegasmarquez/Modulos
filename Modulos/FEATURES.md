@@ -31,6 +31,17 @@ Se ha implementado un sistema de diseño personalizado sobre Bootstrap 5, utiliz
 - **Retroalimentación Específica**: Los errores de validación de la API (como DNI duplicado o requisitos de complejidad de contraseña) se mapean directamente al campo correspondiente en el formulario usando `ModelState`.
 - **Visibilidad**: Botones de ojo integrados en los campos de contraseña para alternar la visibilidad de manera segura.
 
+## 👥 Gestión de Usuarios (Admin)
+
+### Listado y Control
+- **Vista Administrativa**: Acceso exclusivo para Admin y SuperAdmin para visualizar todos los usuarios registrados.
+- **Detalle de Usuario**: Integración con la vista de perfil para consultar datos específicos de cualquier usuario.
+- **Estado de Contraseña**: Indicadores visuales para saber si un usuario mantiene su contraseña temporal o ya la ha actualizado.
+
+### Reinicio de Contraseña
+- **Generación Automática**: Algoritmo de generación de contraseñas temporales siguiendo el patrón `[InicialNombre][inicialApellido][Año]@` (ej. `Na2026@`).
+- **Seguridad**: Al reiniciar, se activa forzosamente la bandera `MustChangePassword`, obligando al usuario a cambiarla en su siguiente inicio de sesión.
+
 ## ⚙️ Tecnologías Frontend
 - **Inter (Google Fonts)**: Tipografía moderna para mejor legibilidad.
 - **Bootstrap Icons**: Set de iconos consistente para toda la aplicación.

@@ -79,6 +79,10 @@
                             <i class="bi bi-person-plus"></i>
                             <span>Nuevo Usuario</span>
                         </a>
+                        <a class="sidebar-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Users" ? "active" : "")" asp-controller="Account" asp-action="Users">
+                            <i class="bi bi-people"></i>
+                            <span>Usuarios</span>
+                        </a>
                     }
                 </nav>
             </aside>
