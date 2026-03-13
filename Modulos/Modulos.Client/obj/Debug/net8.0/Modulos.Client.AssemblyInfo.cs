@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Modulos.Client")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6147a3e00028dddb6998086390fb576027c4aa8d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f5fe1ef158d648d3d758f1b1fbf0f2f11cc7a30b")]
 [assembly: System.Reflection.AssemblyProductAttribute("Modulos.Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Modulos.Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
