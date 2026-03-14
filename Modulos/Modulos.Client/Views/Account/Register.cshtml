@@ -81,13 +81,20 @@
                                 <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small fw-bold text-secondary">Rol de Usuario</label>
-                                <select asp-for="Role" class="form-select form-control-modern" required>
-                                    <option value="User">Usuario Estándar</option>
-                                    <option value="Admin">Administrador</option>
-                                    <option value="SuperAdmin">Super Administrador</option>
-                                </select>
-                                <span asp-validation-for="Role" class="text-danger small"></span>
+                                <div class="form-floating mb-3">
+                                    <select asp-for="Role" class="form-select border-0 shadow-sm rounded-3">
+                                        <option value="">Seleccione un Rol</option>
+                                        @if (ViewBag.Roles != null)
+                                        {
+                                            foreach (var role in (List<string>)ViewBag.Roles)
+                                            {
+                                                <option value="@role">@role</option>
+                                            }
+                                        }
+                                    </select>
+                                    <label asp-for="Role" class="text-muted"><i class="bi bi-shield-lock-fill me-2"></i>Rol</label>
+                                    <span asp-validation-for="Role" class="text-danger small position-absolute mt-1"></span>
+                                </div>
                             </div>
                         </div>
 

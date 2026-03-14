@@ -131,15 +131,39 @@ namespace Modulos.API.Controllers
 
         [Authorize(Policy = "RequireAdmin")]
         [HttpGet("users")]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] string? role = null, [FromQuery] bool? mustChangePassword = null)
         {
-            var users = _userManager.Users.ToList();
+            var query = _userManager.Users.AsQueryable();
+
+            if (mustChangePassword.HasValue)
+            {
+                query = query.Where(u => u.MustChangePassword == mustChangePassword.Value);
+            }
+
+            var users = query.ToList();
             var userDtos = new List<UserDto>();
+
             foreach (var user in users)
             {
+                var userRoles = await _userManager.GetRolesAsync(user);
+                
+                if (!string.IsNullOrEmpty(role) && !userRoles.Contains(role))
+                {
+                    continue;
+                }
+
                 userDtos.Add(await MapToDto(user));
             }
+
             return Ok(userDtos);
+        }
+
+        [Authorize(Policy = "RequireAdmin")]
+        [HttpGet("roles")]
+        public ActionResult<IEnumerable<string>> GetRoles()
+        {
+            var roles = _roleManager.Roles.Select(r => r.Name).ToList();
+            return Ok(roles);
         }
 
         [Authorize(Policy = "RequireAdmin")]
@@ -177,6 +201,34 @@ namespace Modulos.API.Controllers
             await _userManager.UpdateAsync(user);
 
             return Ok(new AuthResponse { Success = true, Message = $"Contraseña reiniciada a: {tempPassword}" });
+        }
+
+        [Authorize(Policy = "RequireAdmin")]
+        [HttpPost("update-role")]
+        public async Task<ActionResult<AuthResponse>> UpdateUserRole(UpdateRoleRequest request)
+        {
+            var user = await _userManager.FindByIdAsync(request.UserId);
+            if (user == null) return NotFound(new AuthResponse { Success = false, Message = "User not found" });
+
+            if (!await _roleManager.RoleExistsAsync(request.NewRole))
+            {
+                return BadRequest(new AuthResponse { Success = false, Message = "Role does not exist" });
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                return BadRequest(new AuthResponse { Success = false, Message = "Failed to remove current roles" });
+            }
+
+            var addResult = await _userManager.AddToRoleAsync(user, request.NewRole);
+            if (!addResult.Succeeded)
+            {
+                return BadRequest(new AuthResponse { Success = false, Message = "Failed to add new role" });
+            }
+
+            return Ok(new AuthResponse { Success = true, Message = "User role updated successfully" });
         }
 
         private async Task<UserDto> MapToDto(ApplicationUser user)

@@ -1,6 +1,13 @@
 @model IEnumerable<Modulos.Client.Controllers.UserDto>
 @{
     ViewData["Title"] = "Gestión de Usuarios";
+    var currentRole = ViewBag.CurrentRole as string ?? "all";
+    var currentState = ViewBag.CurrentState as string ?? "all";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
 }
 
 <div class="container py-4">
@@ -9,7 +16,7 @@
             <h2 class="fw-bold text-primary mb-0">
                 <i class="bi bi-people-fill me-2"></i>Gestión de Usuarios
             </h2>
-            <p class="text-muted mb-0">Visualiza y administra todos los usuarios del sistema.</p>
+            <p class="text-muted mb-0">Visualiza y administra todos los usuarios del sistema (Filtrado desde BD).</p>
         </div>
         <div class="col-auto">
             <a asp-action="Register" class="btn btn-primary-modern btn-modern px-4 py-2 rounded-pill shadow-sm border-0">
@@ -34,54 +41,98 @@
         </div>
     }
 
-    <div class="glass-card border-0 animate-fade-in overflow-hidden">
+    <!-- Filtros de Estado y Rol (Server-Side) -->
+    <div class="row mb-3 g-3">
+        <div class="col-md-auto">
+            <div class="glass-card p-1 d-inline-flex gap-1 rounded-pill shadow-sm border-0">
+                <div class="px-3 py-1 small fw-bold text-primary"><i class="bi bi-shield-check me-1"></i>Estado:</div>
+                <button type="button" class="btn btn-sm btn-filter-state px-3 rounded-pill @(currentState == "all" ? "active btn-primary text-white" : "btn-outline-secondary")" data-filter="all">Todos</button>
+                <button type="button" class="btn btn-sm btn-filter-state px-3 rounded-pill @(currentState == "Temporal" ? "active btn-primary text-white" : "btn-outline-secondary")" data-filter="Temporal">Temporal</button>
+                <button type="button" class="btn btn-sm btn-filter-state px-3 rounded-pill @(currentState == "Cambiada" ? "active btn-primary text-white" : "btn-outline-secondary")" data-filter="Cambiada">Cambiada</button>
+            </div>
+        </div>
+        <div class="col-md-auto">
+            <div class="glass-card p-1 d-inline-flex gap-1 rounded-pill shadow-sm border-0">
+                <div class="px-3 py-1 small fw-bold text-primary"><i class="bi bi-person-badge me-1"></i>Rol:</div>
+                <button type="button" class="btn btn-sm btn-filter-role px-3 rounded-pill @(currentRole == "all" ? "active btn-primary text-white" : "btn-outline-secondary")" data-filter="all">Todos</button>
+                @if (ViewBag.Roles != null)
+                {
+                    foreach (var r in (List<string>)ViewBag.Roles)
+                    {
+                        <button type="button" class="btn btn-sm btn-filter-role px-3 rounded-pill @(currentRole == r ? "active btn-primary text-white" : "btn-outline-secondary")" data-filter="@r">@r</button>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card border-0 animate-fade-in overflow-hidden p-3">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table id="usersTable" class="table table-hover align-middle mb-0 w-100">
                 <thead class="bg-light bg-opacity-50">
                     <tr>
-                        <th class="ps-4 py-3 text-muted small text-uppercase fw-bold">DNI</th>
+                        <th class="ps-3 py-3 text-muted small text-uppercase fw-bold">DNI</th>
                         <th class="py-3 text-muted small text-uppercase fw-bold">Usuario</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold">Rol</th>
                         <th class="py-3 text-muted small text-uppercase fw-bold">Correo</th>
-                        <th class="py-3 text-muted small text-uppercase fw-bold text-center">Estado Pass</th>
-                        <th class="pe-4 py-3 text-muted small text-uppercase fw-bold text-end">Acciones</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold text-center">Pass</th>
+                        <th class="pe-3 py-3 text-muted small text-uppercase fw-bold text-end">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
                     @foreach (var user in Model)
                     {
+                        var role = user.Roles.FirstOrDefault() ?? "User";
                         <tr class="user-row cursor-pointer" onclick="window.location.href='@Url.Action("UserProfile", new { id = user.Id })'">
-                            <td class="ps-4 fw-medium text-primary">@user.DNI</td>
+                            <td class="ps-3 fw-medium text-primary">@user.DNI</td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-circle-sm bg-primary bg-opacity-10 text-primary me-3">
                                         @user.FirstName[0]@user.LastName[0]
                                     </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">@user.FullName</div>
-                                        <div class="small text-muted">@string.Join(", ", user.Roles)</div>
-                                    </div>
+                                    <div class="fw-bold text-dark">@user.FullName</div>
                                 </div>
+                            </td>
+                            <td>
+                                <form asp-action="UpdateRole" method="post" class="d-inline role-form" onclick="event.stopPropagation();">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <select name="newRole" class="form-select form-select-sm border rounded-pill px-2 role-selector" 
+                                            style="width: 120px; cursor: pointer;" 
+                                            data-previous-value="@role">
+                                        @if (ViewBag.Roles != null)
+                                        {
+                                            foreach (var r in (List<string>)ViewBag.Roles)
+                                            {
+                                                <option value="@r" selected="@(role == r)">@r</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option value="@role" selected>@role</option>
+                                        }
+                                    </select>
+                                </form>
                             </td>
                             <td>@user.Email</td>
                             <td class="text-center">
                                 @if (user.MustChangePassword)
                                 {
-                                    <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3 py-2">
-                                        <i class="bi bi-clock-history me-1"></i> Temporal
+                                    <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-2 py-1" title="Contraseña Temporal">
+                                        <i class="bi bi-clock-history"></i>
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">
-                                        <i class="bi bi-check-lg me-1"></i> Cambiada
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-2 py-1" title="Contraseña Cambiada">
+                                        <i class="bi bi-check-lg"></i>
                                     </span>
                                 }
                             </td>
-                            <td class="pe-4 text-end" onclick="event.stopPropagation();">
+                            <td class="pe-3 text-end" onclick="event.stopPropagation();">
                                 <form asp-action="ResetPassword" asp-route-id="@user.Id" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-2" 
                                             onclick="return confirm('¿Está seguro de reiniciar la contraseña de @user.FullName?')">
-                                        <i class="bi bi-shield-lock me-1"></i> Reiniciar
+                                        <i class="bi bi-shield-lock"></i>
                                     </button>
                                 </form>
                             </td>
@@ -93,16 +144,72 @@
     </div>
 </div>
 
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable({
+                responsive: true,
+                dom: '<"d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3"f>rt<"d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3"ip>',
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                columnDefs: [
+                    { targets: [5], orderable: false, searchable: false }
+                ],
+                order: [[1, 'asc']],
+                searching: true // Keep local searching enabled for the already filtered results
+            });
+
+            function reloadWithFilters() {
+                var state = $('.btn-filter-state.active').data('filter');
+                var role = $('.btn-filter-role.active').data('filter');
+                window.location.href = '@Url.Action("Users")?role=' + role + '&state=' + state;
+            }
+
+            $('.btn-filter-state').on('click', function () {
+                $('.btn-filter-state').removeClass('active btn-primary text-white').addClass('btn-outline-secondary');
+                $(this).addClass('active btn-primary text-white').removeClass('btn-outline-secondary');
+                reloadWithFilters();
+            });
+
+            $('.btn-filter-role').on('click', function () {
+                $('.btn-filter-role').removeClass('active btn-primary text-white').addClass('btn-outline-secondary');
+                $(this).addClass('active btn-primary text-white').removeClass('btn-outline-secondary');
+                reloadWithFilters();
+            });
+
+            // Role change confirmation logic
+            $('.role-selector').on('change', function () {
+                var $select = $(this);
+                var newValue = $select.val();
+                var oldValue = $select.data('previous-value');
+                var userName = $select.closest('tr').find('.fw-bold.text-dark').text();
+
+                if (confirm('¿Está seguro de cambiar el rol de ' + userName + ' a ' + newValue + '?')) {
+                    $select.closest('form').submit();
+                } else {
+                    $select.val(oldValue);
+                }
+            });
+        });
+    </script>
+}
+
 <style>
     .avatar-circle-sm {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
         font-weight: 600;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
     }
     .user-row {
         transition: all 0.2s ease;
@@ -113,5 +220,29 @@
     }
     .cursor-pointer {
         cursor: pointer;
+    }
+    .dataTables_filter input {
+        border-radius: 20px !important;
+        padding: 0.4rem 1rem !important;
+        border: 1px solid #dee2e6 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        min-width: 200px;
+        font-size: 0.9rem;
+    }
+    .dataTables_filter input:focus {
+        border-color: var(--primary-color) !important;
+    }
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius);
+    }
+    .form-select-sm {
+        font-size: 0.85rem;
+        padding-top: 0.2rem;
+        padding-bottom: 0.2rem;
     }
 </style>

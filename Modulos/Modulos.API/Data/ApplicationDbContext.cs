@@ -10,6 +10,14 @@ namespace Modulos.API.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
+
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Warehouse> Warehouses { get; set; }
+        public DbSet<ProductWarehouse> Stocks { get; set; }
+        public DbSet<Movement> Movements { get; set; }
+        public DbSet<MovementDetail> MovementDetails { get; set; }
+        public DbSet<ScheduledInventory> ScheduledInventories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -22,6 +30,39 @@ namespace Modulos.API.Data
 
             builder.Entity<IdentityRole>().ToTable("Roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+
+            // Inventory Configuration
+            builder.Entity<ProductWarehouse>(entity =>
+            {
+                entity.HasKey(pw => new { pw.ProductId, pw.WarehouseId });
+                entity.ToTable("Stocks");
+
+                entity.HasOne(pw => pw.Product)
+                    .WithMany(p => p.Stocks)
+                    .HasForeignKey(pw => pw.ProductId);
+
+                entity.HasOne(pw => pw.Warehouse)
+                    .WithMany(w => w.Stocks)
+                    .HasForeignKey(pw => pw.WarehouseId);
+            });
+
+            builder.Entity<Movement>(entity =>
+            {
+                entity.HasOne(m => m.FromWarehouse)
+                    .WithMany()
+                    .HasForeignKey(m => m.FromWarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(m => m.ToWarehouse)
+                    .WithMany()
+                    .HasForeignKey(m => m.ToWarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(m => m.User)
+                    .WithMany()
+                    .HasForeignKey(m => m.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // Seed Roles
             builder.Entity<IdentityRole>().HasData(

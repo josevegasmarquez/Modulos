@@ -1,0 +1,87 @@
+@model IEnumerable<Modulos.Client.Controllers.InventoryController.WarehouseDto>
+@{
+    ViewData["Title"] = "Gestión de Almacenes";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+}
+
+<div class="container py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold text-primary mb-0">
+                <i class="bi bi-building me-2"></i>Gestión de Almacenes
+            </h2>
+            <p class="text-muted mb-0">Administra las ubicaciones físicas y sus estados.</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary-modern btn-modern px-4 py-2 rounded-pill shadow-sm border-0" data-bs-toggle="modal" data-bs-target="#newWarehouseModal">
+                <i class="bi bi-plus-circle me-2"></i>Nuevo Almacén
+            </button>
+        </div>
+    </div>
+
+    <div class="glass-card border-0 animate-fade-in overflow-hidden p-3">
+        <div class="table-responsive">
+            <table id="warehousesTable" class="table table-hover align-middle mb-0 w-100">
+                <thead class="bg-light bg-opacity-50">
+                    <tr>
+                        <th class="ps-3 py-3 text-muted small text-uppercase fw-bold">Nombre</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold">Ubicación</th>
+                        <th class="py-3 text-muted small text-uppercase fw-bold text-center">Estado</th>
+                        <th class="pe-3 py-3 text-muted small text-uppercase fw-bold text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    @foreach (var warehouse in Model)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold text-dark">@warehouse.Name</td>
+                            <td>@warehouse.Location</td>
+                            <td class="text-center">
+                                @if (warehouse.IsActive)
+                                {
+                                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-2">Inactivo</span>
+                                }
+                            </td>
+                            <td class="pe-3 text-end">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-2"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-outline-info rounded-pill px-2 ms-1"><i class="bi bi-geo-alt"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#warehousesTable').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+                },
+                dom: '<"d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3"f>rt<"d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3"ip>'
+            });
+        });
+    </script>
+}
+
+<style>
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius);
+    }
+</style>

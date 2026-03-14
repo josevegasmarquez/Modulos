@@ -149,7 +149,11 @@ namespace Modulos.Client.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register() => View();
+        public async Task<IActionResult> Register()
+        {
+            await PopulateRolesViewBag();
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterRequest model)
@@ -202,25 +206,56 @@ namespace Modulos.Client.Controllers
                 ModelState.AddModelError("", $"Error inesperado del servidor: {response.StatusCode}");
             }
 
+            await PopulateRolesViewBag();
             return View(model);
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> Users()
+        public async Task<IActionResult> Users(string? role = null, string? state = null)
         {
             var client = _httpClientFactory.CreateClient("ModulosAPI");
             var token = HttpContext.Session.GetString("JWTToken");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("Auth/users");
+            var queryParams = new List<string>();
+            if (!string.IsNullOrEmpty(role) && role != "all") queryParams.Add($"role={role}");
+            if (!string.IsNullOrEmpty(state) && state != "all")
+            {
+                bool mustChange = state == "Temporal";
+                queryParams.Add($"mustChangePassword={mustChange.ToString().ToLower()}");
+            }
+
+            var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+            var response = await client.GetAsync($"Auth/users{queryString}");
+
             if (response.IsSuccessStatusCode)
             {
                 var users = await response.Content.ReadFromJsonAsync<List<UserDto>>();
+                await PopulateRolesViewBag();
+                ViewBag.CurrentRole = role ?? "all";
+                ViewBag.CurrentState = state ?? "all";
                 return View(users);
             }
 
+            await PopulateRolesViewBag();
             return View(new List<UserDto>());
+        }
+
+        private async Task PopulateRolesViewBag()
+        {
+            var client = _httpClientFactory.CreateClient("ModulosAPI");
+            var token = HttpContext.Session.GetString("JWTToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await client.GetAsync("Auth/roles");
+                if (response.IsSuccessStatusCode)
+                {
+                    var roles = await response.Content.ReadFromJsonAsync<List<string>>();
+                    ViewBag.Roles = roles;
+                }
+            }
         }
 
         [HttpGet]
@@ -259,6 +294,33 @@ namespace Modulos.Client.Controllers
             else
             {
                 TempData["ErrorMessage"] = "Error al reiniciar la contraseña.";
+            }
+
+            return RedirectToAction("Users");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> UpdateRole(string userId, string newRole)
+        {
+            var client = _httpClientFactory.CreateClient("ModulosAPI");
+            var token = HttpContext.Session.GetString("JWTToken");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var content = new StringContent(JsonSerializer.Serialize(new { userId, newRole }), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("Auth/update-role", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                TempData["SuccessMessage"] = result?.Message;
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var authResponse = JsonSerializer.Deserialize<AuthResponse>(responseContent, options);
+                TempData["ErrorMessage"] = authResponse?.Message ?? "Error al actualizar el rol.";
             }
 
             return RedirectToAction("Users");
