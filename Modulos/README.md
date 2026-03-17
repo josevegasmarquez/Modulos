@@ -25,7 +25,7 @@ Para más detalles técnicos sobre la implementación de la UI y seguridad, cons
 
 ## Requisitos Implementados
 
-1.  **Registro de Usuarios**: Solo `Admin` y `SuperAdmin` pueden registrar nuevos usuarios.
+1.  **Registro de Usuarios**: Solo `Admin` y `SuperAdmin` pueden registrar nuevos usuarios, incluyendo consulta de verificación y limpieza automática del formulario.
 2.  **Contraseña Temporal**: Flujo de seguridad forzado para nuevos usuarios.
 3.  **Seguridad JWT**: Comunicación cifrada entre Cliente y API.
 4.  **DNI Único**: Longitud exacta de 8 caracteres numéricos.

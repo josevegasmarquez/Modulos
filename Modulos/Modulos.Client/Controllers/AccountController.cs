@@ -167,17 +167,34 @@ namespace Modulos.Client.Controllers
             var token = HttpContext.Session.GetString("JWTToken");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
+            var registerData = new
+            {
+                model.Nombres,
+                model.Apellidos,
+                model.DNI,
+                model.Email,
+                model.Password,
+                model.FechaNacimiento,
+                model.Genero,
+                model.PhoneNumber,
+                Direccion = model.Direccion,
+                model.Role
+            };
+
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var content = new StringContent(JsonSerializer.Serialize(registerData, options), Encoding.UTF8, "application/json");
             var response = await client.PostAsync("Auth/register", content);
 
             // Intentar deserializar la respuesta siempre para obtener el mensaje informativo
             var responseContent = await response.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var authResponse = JsonSerializer.Deserialize<AuthResponse>(responseContent, options);
+            var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var authResponse = JsonSerializer.Deserialize<AuthResponse>(responseContent, deserializeOptions);
 
             if (response.IsSuccessStatusCode && authResponse?.Success == true)
             {
                 ViewBag.Message = authResponse.Message ?? "Usuario registrado correctamente.";
+                ModelState.Clear();
+                await PopulateRolesViewBag();
                 return View();
             }
 

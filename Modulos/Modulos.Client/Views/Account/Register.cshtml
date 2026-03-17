@@ -26,7 +26,7 @@
                         </div>
                     }
 
-                    <form asp-action="Register" method="post">
+                    <form asp-action="Register" method="post" id="registerForm">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-4 small p-3 bg-danger bg-opacity-10 rounded"></div>
                         
                         <h5 class="text-primary fw-bold mb-4 border-bottom pb-2">Datos Personales</h5>
@@ -124,4 +124,32 @@
 @section Scripts {
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Automation for Email field
+            const $nombres = $('#Nombres');
+            const $apellidos = $('#Apellidos');
+            const $email = $('#Email');
+
+            function updateEmail() {
+                const nombre = $nombres.val().trim().split(' ')[0].toLowerCase();
+                const apellido = $apellidos.val().trim().split(' ')[0].toLowerCase();
+                
+                if (nombre && apellido) {
+                    $email.val(nombre + '.' + apellido + '@@modulos.com');
+                }
+            }
+
+            $nombres.on('input', updateEmail);
+            $apellidos.on('input', updateEmail);
+
+            $('#registerForm').on('submit', function (e) {
+                if ($(this).valid()) {
+                    if (!confirm('¿Está seguro de registrar este nuevo usuario?')) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        });
+    </script>
 }

@@ -67,10 +67,25 @@ namespace Modulos.API.Controllers
                 return BadRequest(new AuthResponse { Success = false, Message = string.Join(", ", result.Errors.Select(e => e.Description)) });
             }
 
-            var role = string.IsNullOrEmpty(request.Role) ? "User" : request.Role;
-            if (await _roleManager.RoleExistsAsync(role))
+            if (!string.IsNullOrEmpty(request.Role))
             {
-                await _userManager.AddToRoleAsync(user, role);
+                if (await _roleManager.RoleExistsAsync(request.Role))
+                {
+                    var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
+                    if (!roleResult.Succeeded)
+                    {
+                        return BadRequest(new AuthResponse { Success = false, Message = "Usuario creado pero falló la asignación del rol: " + string.Join(", ", roleResult.Errors.Select(e => e.Description)) });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new AuthResponse { Success = false, Message = $"El rol '{request.Role}' no existe en el sistema." });
+                }
+            }
+            else
+            {
+                // Default role if none specified
+                await _userManager.AddToRoleAsync(user, "Usuario");
             }
 
             return Ok(new AuthResponse { Success = true, Message = "User registered successfully", User = await MapToDto(user) });

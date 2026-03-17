@@ -33,6 +33,11 @@ Se ha implementado un sistema de diseño personalizado sobre Bootstrap 5, utiliz
 
 ## 👥 Gestión de Usuarios (Admin)
 
+### Registro de Nuevos Usuarios
+- **Confirmación Segura**: Se ha integrado una consulta de verificación (`confirm()`) antes de registrar un usuario para evitar acciones accidentales.
+- **Flujo Optimizado**: Tras registrar exitosamente a un usuario, el formulario se limpia automáticamente y de forma segura usando `ModelState.Clear()`, preparando la interfaz para un nuevo registro.
+- **Generación Automática de Correo**: El campo de correo electrónico se autocompleta dinámicamente utilizando el primer nombre y el primer apellido del usuario en minúsculas (ej. `juan.perez@modulos.com`).
+
 ### Listado y Control
 - **Vista Administrativa**: Acceso exclusivo para Admin y SuperAdmin para visualizar todos los usuarios registrados.
 - **Detalle de Usuario**: Integración con la vista de perfil para consultar datos específicos de cualquier usuario.

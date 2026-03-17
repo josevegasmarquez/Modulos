@@ -82,7 +82,7 @@
                 <tbody class="border-top-0">
                     @foreach (var user in Model)
                     {
-                        var role = user.Roles.FirstOrDefault() ?? "User";
+                        var role = user.Roles.FirstOrDefault() ?? "Usuario";
                         <tr class="user-row cursor-pointer" onclick="window.location.href='@Url.Action("UserProfile", new { id = user.Id })'">
                             <td class="ps-3 fw-medium text-primary">@user.DNI</td>
                             <td>

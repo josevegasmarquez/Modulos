@@ -68,7 +68,10 @@ namespace Modulos.API.Data
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole { Id = "1", Name = "SuperAdmin", NormalizedName = "SUPERADMIN" },
                 new IdentityRole { Id = "2", Name = "Admin", NormalizedName = "ADMIN" },
-                new IdentityRole { Id = "3", Name = "User", NormalizedName = "USER" }
+                new IdentityRole { Id = "3", Name = "Usuario", NormalizedName = "USUARIO" },
+                new IdentityRole { Id = "4", Name = "Almacenero", NormalizedName = "ALMACENERO" },
+                new IdentityRole { Id = "5", Name = "Vendedor", NormalizedName = "VENDEDOR" },
+                new IdentityRole { Id = "6", Name = "Comprador", NormalizedName = "COMPRADOR" }
             );
 
             // Seed SuperAdmin User
